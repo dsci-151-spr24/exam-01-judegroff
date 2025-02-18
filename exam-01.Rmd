@@ -1,7 +1,7 @@
 ---
 title: "Take Home Exam #1"
-author: "Adam J Sullivan"
-date: "February 24, 2024"
+author: "Jude Groff"
+date: "February 17, 2025"
 output: html_document
 ---
 
@@ -45,7 +45,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Academic Integrity Statement
 
-*I, \_\_\_\_\_\_\_\_\_\_\_\_, hereby state that I have not communicated with or gained information in any way from my classmates or anyone other than the Professor or TA during this exam, and that all work is my own.*
+*I, Jude Groff, hereby state that I have not communicated with or gained information in any way from my classmates or anyone other than the Professor or TA during this exam, and that all work is my own.*
 
 **A note on sharing / reusing code:** I am well aware that a huge volume of code is available on the web to solve any number of problems.
 For this exam you are allowed to make use of any online resources (e.g. StackOverflow) but you must explicitly cite where you obtained any code you directly use (or use as inspiration).
@@ -97,12 +97,38 @@ The main data is in the `flights` data frame, but there are additional data sets
 ## Questions
 
 1.  **Question 1 (10 points)** - What are the ten most common destinations for flights from NYC airports in 2013?
-    Make a table that lists these in descending order of frequency and shows the number of fligts heading to each airport.
+    Make a table that lists these in descending order of frequency and shows the number of flights heading to each airport.
+    
+```{r, eval=TRUE}
+library(tidyverse)
+library(nycflights13)
+```
+    
+```{r, eval=TRUE}
+
+flights %>%
+  group_by(dest) %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  head(10)
+
+```
+"group_by" groups the flights by destination making it so that "count" can show us how many flights were taken in each group, and "arrange" I used to show us the most visited destinations, and "head" to get rid of the rows that weren't in the top 10.
 
 2.  **Question 2 (10 points)** - Which airlines have the most flights departing from NYC airports in 2013?
     Make a table that lists these in descending order of frequency and shows the number of flights for each airline.
     In your narrative mention the names of the airlines as well.
     *Hint:* You can use the `airlines` dataset to look up the airline name based on `carrier` code.
+    
+```{r, eval=TRUE}
+
+flights %>%
+  group_by(carrier) %>%
+  count() %>%
+  arrange(desc(n))
+
+```
+This code uses "group_by" to group by carrier, "count" to show us how many flights each one took out of NYC, adn arrange to display them by most to least. This table shows that United Airlines has taken the most, with JetBlue Airlines in second, and Skywest airlines having taken the least.
 
 3.  **Question 3 (10 points)** - Consider only flights that have non-missing arrival delay information.
     Your answer should include the name of the carrier in addition to the carrier code and the values asked.
