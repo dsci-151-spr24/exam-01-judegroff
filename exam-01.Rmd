@@ -132,23 +132,91 @@ This code uses "group_by" to group by carrier, "count" to show us how many fligh
 
 3.  **Question 3 (10 points)** - Consider only flights that have non-missing arrival delay information.
     Your answer should include the name of the carrier in addition to the carrier code and the values asked.
+    
+```{r, eval=TRUE}
+
+flights %>%
+  filter(!is.na(arr_delay)) %>% 
+  group_by(carrier) %>%
+  summarize(count = n(), mean_delay = mean(arr_delay)) %>%
+  arrange(desc(mean_delay))
+
+```
 
     a\.
     Which carrier had the highest mean arrival delay?
+    
+The carrier with the highest mean delay was Frontier Airlines with roughly 22 minutes of delay.
 
     b\.
     Which carrier had the lowest mean arrival delay?
+    
+The carrier with the lowest mean delay was Alaska Airlines with roughly -10 minutes of delay, meaning it was 10 minutes early.
 
 4.  **Question 4 (10 points)** - What was the mean temperature at the origin airport on the day with the highest departure delay?
     Your answer should include the name of origin airport, the date with the highest departure delay, and the mean temperature on that day.
+    
+```{r, eval=TRUE}
+
+flight_most_delayed <- flights %>%
+  group_by(carrier, origin, year, month, day) %>%
+  count(dep_delay) %>%
+  arrange(desc(dep_delay)) %>%
+  head(1)
+
+```
+
+This chunk of code uses "group_by" to get the date and origin airport, and "count" to find the departure delay, which goes into "arrange" which we can use to find the flight with the highest delay. We put this into its own mini dataset, that way we can merge it to make a new dataset with the existing weather dataset, which forces it into only the data from that day, which we use to find the mean tempature.
+
+```{r, eval=TRUE}
+
+flight_most_delayed_weather <- merge(flight_most_delayed, weather)
+
+```
+
+```{r, eval=TRUE}
+
+flight_most_delayed_weather %>%
+  summarize(mean_temp = mean(temp, na.rm = TRUE))
+  
+  
+```
+And this code uses summarize to find the mean temperature.
 
 5.  **Question 5 (15 points)** - Consider breaking the day into four time intervals: 12:01am-6am, 6:01am-12pm, 12:01pm-6pm, 6:01pm-12am.
 
     a\.
     Calculate the proportion of flights that are delayed at departure at each of these time intervals.
+    
+```{r, eval=TRUE}
+
+
+flights <- flights %>%
+  mutate(time_interval = case_when(
+    hour >= 0 & hour <= 6 ~ "12:01am-6am",
+    hour >= 7 & hour <= 12 ~ "6:01am-12pm",
+    hour >= 13 & hour <= 18 ~ "12:01pm-6pm",
+    hour >= 19 & hour <= 23 ~ "6:01pm-12am",
+    TRUE ~ "Other"
+  ))
+
+```
+This code uses mutate to take existing times and mutate/split them into 4 variables, adding this too the flights dataset for future use here:
+
+```{r, eval=TRUE}
+
+
+flights %>%
+  filter(arr_delay > 0) %>%
+  group_by(time_interval) %>%
+  summarize(mean(arr_delay))
+```
+This uses "filter" to filter out non-delayed flights, leading into "group_by" to group flights by time interval, and then using "summarize" to calculate the mean/average delay of flights at these different times. This shows that flights are most delayed at the time interval "6:01pm-12am", and least delayed at the time interval "12:01am-6pm".
 
     b\.
-    Comment on how the likelihood of being delayed change throughout the day?
+    Comment on how the likelihood of being delayed changes throughout the day?
+    
+It seems to be delayed less at times of little travel, as people tend to travel less early in the day, and travel more later in the day.
 
 6.  **Question 6 (15 points)** - Find the flight with the longest air time.
 
