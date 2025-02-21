@@ -211,7 +211,7 @@ flights %>%
   group_by(time_interval) %>%
   summarize(mean(arr_delay))
 ```
-This uses "filter" to filter out non-delayed flights, leading into "group_by" to group flights by time interval, and then using "summarize" to calculate the mean/average delay of flights at these different times. This shows that flights are most delayed at the time interval "6:01pm-12am", and least delayed at the time interval "12:01am-6pm".
+This uses "filter" to filter out non-delayed flights, leading into "group_by" to group flights by time interval, and then using "summarize" to calculate the mean/average delay of flights at these different times. This shows that flights are most delayed at the time interval "6:01pm-12am", and least delayed at the time interval "12:01am-6pm". This code was partly inspired by this page: (https://stackoverflow.com/questions/77082220/use-condition-in-case-when-once/77083924)
 
     b\.
     Comment on how the likelihood of being delayed changes throughout the day?
@@ -220,14 +220,38 @@ It seems to be delayed less at times of little travel, as people tend to travel 
 
 6.  **Question 6 (15 points)** - Find the flight with the longest air time.
 
+```{r, eval=TRUE}
+
+flights_planes <- merge(flights, planes)
+
+```
+
+We use the above code to merge the info for flights and planes, that way we can see the seats for the planes.
+
+```{r, eval=TRUE}
+
+flights_planes %>%
+  count(air_time, dest, seats) %>%
+  arrange(desc(air_time)) %>%
+  head(1)
+
+```
+In this code we use "count" to get the air time and destination, "arrange" to list them from most time to least, and "head" to give us the top answer only.
+
     a\.
     How long is this flight?
+    
+695 minutes, or 11 hours and 35 minutes.
 
     b\.
     What city did it fly to?
+    
+HNL, or Honolulu, Hawaii.
 
     c\.
     How many seats does the plane that flew this flight have?
+    
+It had 377 seats.
 
 7.  **Question 7 (15 pts)** - The `airports` data frame contains information on a large number of primarily American airports.
     These data include location information for these airports in the form of latitude and longitude coordinates.
@@ -238,12 +262,60 @@ It seems to be delayed less at times of little travel, as people tend to travel 
     [This Wikipedia article](https://en.wikipedia.org/wiki/List_of_extreme_points_of_the_United_States) can help, but you're welcomed to use other resources as well.
     Make sure to cite whatever resource you use.
 
+```{r, eval=TRUE}
+
+airports_contiguos_us <- airports %>%
+  filter(lat >= 25.84 & lat <= 49.38,
+         lon >= -124.67 & lon <= -66.95)
+  
+
+```
+
+This code uses "filter" to filter out the airports located outside of the longitude and latitude of the contiguos US states, and makes another mini dataset to work with. The only other resource I used was this: (https://www.quora.com/What-are-the-latitude-and-longitude-of-the-U-S-A) This let me know what the coordinates of the longitude and latitude were, that way I could filter it.
+
+```{r, eval=TRUE}
+
+ggplot(airports_contiguos_us, aes(x = lon)) +
+  geom_histogram(binwidth = 0.5, fill = "pink", color = "black", alpha = 0.5) +
+  labs(title = "Longitude Distrubution of US Airports",
+       x = "Longitude",
+       y = "Number of Airports")
+  
+
+```
+This histogram uses the filtered dataset we just made with "ggplot" and the "geom_histogram" function to visualize the distrubution of airports across longitudes of the contiguos US, showing how many airpots are at each longitude.
+
 8.  **Question 8 (15 pts)** - Recreate the plot included below using the `flights` data.
     Once you have created the visualization, in no more than one paragraph, describe what you think the point of this visualization might be.
     *Hint:* The visualization uses the variable `arrival`, which is not included in the `flights` data frame.
     You will have to create `arrival` yourself, it is a categorical variable that is equal to `"ontime"` when `arr_delay <= 0` and `"delayed"` when `arr_delay > 0`.
 
 ![](img/plot-to-recreate.png)
+```{r, eval=TRUE}
+
+flights <- flights %>% 
+  mutate(arrival = case_when(
+    arr_delay <= 0 ~ "ontime",
+    arr_delay > 0 ~ "delayed"))
+
+```
+We use "mutate" to add a variable to the flights dataset for future use.
+
+```{r, eval=TRUE}
+
+flights %>% 
+  filter(dest == c("PHL", "RDU")) %>%
+  filter(!is.na(arrival)) %>%
+  ggplot(aes(x = arrival, y = dep_delay, color = dest)) +
+  geom_boxplot() +
+  facet_grid(dest ~ origin) +
+  labs(title = "On time performance of NYC flights",
+       subtitle = "December 2013",
+       x = "Arrival",
+       y = "Departure delay",
+       color = "Destination")
+
+```
 
 **Extra Credit (5 pts)** - Create a visualization that effectively shows if there is a relationship between the average daily departure delay and the average daily temperature for all three New York city airports.
 Your answer must be given in a single pipe.
